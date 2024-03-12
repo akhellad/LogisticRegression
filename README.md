@@ -67,10 +67,6 @@ When prompted, enter a review to get the sentiment prediction.
 
 Feel free to fork the repository and submit pull requests to contribute to the project.
 
-## License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
 ## Acknowledgments
 
 - Dataset provided by Kaggle.
