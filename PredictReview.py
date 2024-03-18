@@ -7,12 +7,36 @@ import string
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
+import sqlite3
 
-engine = create_engine('postgresql://akhellad:Mamandu91000.@localhost/AvisClients')
+conn = sqlite3.connect('avis_clients.db')
 
-query = "SELECT * FROM avis"
+cur = conn.cursor()
 
-df = pd.read_sql_query(query, con=engine)
+cur.execute('''
+CREATE TABLE IF NOT EXISTS reviews (
+    id INTEGER PRIMARY KEY,
+    Review TEXT NOT NULL,
+    Liked INTEGER NOT NULL
+)
+''')
+
+conn.commit()
+conn.close()
+
+data = pd.read_csv('Restaurant_Reviews.tsv', delimiter='\t', quoting=3)
+
+conn = sqlite3.connect('avis_clients.db')
+
+data.to_sql('reviews', conn, if_exists='append', index=False, chunksize=500)
+
+conn.close()
+
+conn = sqlite3.connect('avis_clients.db')
+
+df = pd.read_sql_query("SELECT * FROM reviews", conn)
+
+conn.close()
 
 nltk.download('stopwords')
 
@@ -25,10 +49,10 @@ def process_review(review):
     token = [token.lemma_.lower() for token in doc if token.text.lower() not in stop_words and token.text not in string.punctuation]
     return ' '.join(token)
 
-df['processed_review'] = df['texte_avis'].apply(process_review)
+df['processed_review'] = df['Review'].apply(process_review)
 
 X = df['processed_review']  
-y = df['note']  
+y = df['Liked']  
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
